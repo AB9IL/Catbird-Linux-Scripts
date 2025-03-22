@@ -1,0 +1,29 @@
+#!/bin/bash
+
+OPTION1=" logout"
+OPTION2=" reboot"
+OPTION3=" shutdown"
+
+OPTIONS="$OPTION1\n$OPTION2\n$OPTION3"
+
+SELECTED="$(echo -e "${OPTIONS}" | /usr/bin/rofi \
+    -dmenu \
+    -l 3 \
+    -theme "material-red" \
+    -p "System Exit")"
+
+case $SELECTED in
+  $OPTION1)
+    # logout
+    session="$(loginctl session-status | awk 'NR==1{print $1}')"
+    loginctl terminate-session $session
+	;;
+  $OPTION2)
+    # reboot
+    systemctl reboot
+    ;;
+  $OPTION3)
+    # shutdown
+    systemctl poweroff
+    ;;
+esac
