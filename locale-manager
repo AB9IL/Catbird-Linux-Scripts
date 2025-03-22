@@ -1,0 +1,49 @@
+#!/bin/bash
+
+langfile="/usr/local/share/html/languages.md"
+
+
+view_locales(){
+    WINDOW=$(yad --info --no-buttons --height 150 --width 350 \
+	--title="Locale Data" \
+    --text="    Locales and Languages:\n\n$(locale -a)");
+}
+
+set_locales(){
+    x-terminal-emulator -e sh -c "sudo dpkg-reconfigure locales"
+}
+
+list_langs(){
+    glow-wrapper $langfile
+}
+
+echo -e "Language and Locale Manager\n"
+
+OPTIONS="View Installed Languages
+Change or Install System Language
+List Language Codes"
+# Select the desired action
+# CHOICE=$(echo -e "$OPTIONS" | fzf --layout=reverse --header=Select: )
+
+# Take the choice; exit if no answer matches options.
+CHOICE="$(echo -e "$OPTIONS" | rofi \
+    -l 3 \
+    -dmenu -p "Select Action" \
+    -mesg "Manage system Locales and Languages.
+Note: After making changes, log out and back in
+for them to take effect (use Ctrl - Alt- Backspace).")"
+
+clear
+[[ -z "$CHOICE" ]] && echo "No selection made, exiting..." && exit 0
+case "$CHOICE" in
+    "View Installed Languages")
+        view_locales
+        ;;
+    "Change or Install System Language")
+        set_locales
+        ;;
+    "List Language Codes")
+        list_langs
+        ;;
+esac
+
