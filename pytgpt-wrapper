@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Copyright (c) 2025 by Philip Collier, github.com/AB9IL
+# This script is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version. There is NO warranty; not even for
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+# This script opens a chat session with python-tgpt within a
+# python virtual environment.
+
+PROVIDERS_FILE="/opt/python-tgpt/providers"
+
+# read the list of providers
+IFS=$'\n' read -rd '' -a PROVIDERS <<<"$(cat "$PROVIDERS_FILE")"
+
+# select a provider
+CHOICE="$(for i in "${PROVIDERS[@]}"; do echo "$i"; done | sed '/^$/d;/#.*/d' | fzf --layout=reverse --header=Provider:)"
+
+# quit if no selection made
+[[ -z "$CHOICE" ]] && echo "No selection..." && exit 1
+
+
+echo -e "\n\nStarting a Python virtual environment\nand opening a pygpt session."
+echo -e "\nFor help with prompts, search on sites like https://prompts.chat/"
+echo -e "\n\nWhen finished, type 'exit' to terminate the session.\n"
+
+# start the chatbot session
+source /opt/python-tgpt/bin/activate
+python3 -m pytgpt interactive --provider "$CHOICE"
+
+# shut down the virtual environment
+deactivate
+
