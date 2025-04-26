@@ -31,7 +31,7 @@
 ###############################################################################
 # ROOT USER CHECK
 ###############################################################################
-SCRIPT_VERSION="0.4"
+SCRIPT_VERSION="0.5"
 echo -e "\nCatbird Linux Converter v$SCRIPT_VERSION"
 # exit if not root
 [[ $EUID -ne 0 ]] && echo -e "\nYou must be root to run this script." && exit
@@ -54,10 +54,15 @@ esac
 ###############################################################################
 
 USERNAME="$(logname)"
+
+# most installations will go under the "working directory"
+export working_dir="/usr/local/src"
+
 export USERNAME
 export ARCH="amd64"
 export ARCH2="x86_64"
 export GOTGPT_VER="2.9.2"
+export HARP_VER="0.29.1"
 export OBSIDIAN_VER="1.8.9"
 export MeshChatVersion="v1.21.0"
 export VPNGateVersion="0.3.1"
@@ -254,11 +259,12 @@ default-jre default-jre-headless ffmpeg lsp-plugins chrony pandoc pandoc-citepro
 poppler-utils p7zip ruby-dev picom rng-tools-debian haveged irssi newsboat \
 zathura zathura-ps zathura-djvu zathura-cb odt2txt atool w3m mediainfo parallel \
 thunar thunar-volman ristretto libmpv2 mpv mplayer firmware-misc-nonfree \
-firmware-linux-nonfree firmware-iwlwifi firmware-brcm80211 meld gnome-screenshot \
-gnome-keyring cmake libgtk-3-common audacity shellcheck shfmt luarocks black \
-ruff tidy yamllint pypy3 dconf-editor net-tools blueman sqlite3 dbus-x11 \
-obs-studio filezilla htop fastfetch tmux proxychains4 rofi sshuttle seahorse \
-surfraw surfraw-extra usbreset"
+firmware-linux-nonfree firmware-iwlwifi firmware-brcm80211 firmware-intel-graphics \
+firmware-intel-misc firmware-marvell-prestera firmware-mediatek \
+firmware-nvidia-graphics meld gnome-screenshot gnome-keyring cmake libgtk-3-common \
+audacity shellcheck shfmt luarocks black ruff tidy yamllint pypy3 dconf-editor \
+net-tools blueman sqlite3 dbus-x11 obs-studio filezilla htop fastfetch tmux \
+proxychains4 rofi sshuttle seahorse surfraw surfraw-extra usbreset"
 for PKG in $PKGS; do sudo apt -y install $PKG; done
 
 # lsp-plugins should be hidden, but are not.
@@ -334,9 +340,20 @@ cp /tmp/{gofmt,gophernotes} /usr/local/go/bin/
 # Create symlink for gofmt
 ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 
+# Install Harper (English grammar checker)
+(
+    cd "$working_dir" || exit
+    mkdir harper-ls
+    cd harper-ls || exit
+    wget -c https://github.com/Automattic/harper/releases/download/v"$HARP_VER"/harper-ls-"$ARCH2"-unknown-linux-gnu.tar.gz
+    tar -xvzf --overwrite harper-ls-"$ARCH2"-unknown-linux-gnu.tar.gz
+    chmod +x "$working_dir"/harper-ls/harper-ls
+    ln -sf "$working_dir"/harper-ls/harper-ls /usr/local/bin/harper-ls
+)
+
 # Install the latest Neovim
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     wget -c https://github.com/neovim/neovim/releases/download/nightly/nvim-linux-"$ARCH2".tar.gz
     tar -xvzf --overwrite nvim-linux-"$ARCH2".tar.gz
     cd nvim-linux-"$ARCH2" || exit
@@ -347,7 +364,7 @@ ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
     rsync -avhc --delete --inplace --mkpath share/nvim/ /usr/share/nvim/
 
     # Install the Neovim configuration
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/nvim-configs
     cd nvim-configs || exit
     rsync -avhc --delete --inplace --mkpath nvim-minimal/ /root/.config/nvim/
@@ -364,7 +381,7 @@ ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 # Get dotfiles
 printf "\nDownloading dot files"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/Dotfiles
     cd Dotfiles || exit
     DIRS=".bashrc.d .w3m"
@@ -411,7 +428,7 @@ rofi -i \
 # install nerd fonts
 (
     printf "\nInstalling Nerd Fonts"
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     for FONTPKG in $FONTS; do
         aria2c -x5 -s5 \
             https://github.com/ryanoasis/nerd-fonts/releases/download/v"$FONT_VER"/"$FONTPKG"
@@ -423,11 +440,11 @@ rofi -i \
 
 # install the git updater
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/Updater-for-Gits-Etc
     chmod +x Updater-for-Gits-Etc/getgits.sh
-    ln -sf /usr/local/src/Updater-for-Gits-Etc/getgits.sh \
-        /usr/local/src/getgits.sh
+    ln -sf "$working_dir"/Updater-for-Gits-Etc/getgits.sh \
+        "$working_dir"/getgits.sh
 )
 
 ###############################################################################
@@ -589,17 +606,17 @@ for PKG in $PKGS; do sudo apt -y autoremove --purge $PKG; done
 
 # A complete DWM setup is available through git:
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/dwm-flexipatch
     git clone https://github.com/AB9IL/dwm-bar
 
     # Simlink the dwm binary to /usr/local/bin/dwm
-    ln -sf /usr/local/src/dwm-flexipatch/dwm /usr/local/bin/dwm
+    ln -sf "$working_dir"/dwm-flexipatch/dwm /usr/local/bin/dwm
 )
 
 # Install the .profile and .xinitrc files
 (
-    cd /usr/local/src/Dotfiles || exit
+    cd "$working_dir"/Dotfiles || exit
     FILES=".profile .xinitrc"
     for FILE in $FILES; do
         cp "$FILE" /home/"$USERNAME"/
@@ -748,7 +765,7 @@ Environment="PIPEWIRE_LATENCY=256/48000"
 printf "\nInstalling some accessories"
 
 # Do most of the work from /usr/local/src
-cd /usr/local/src || exit
+cd "$working_dir" || exit
 
 # install obsidian
 printf "\nInstalling Obsidian"
@@ -778,7 +795,7 @@ nala install -y pipewire pipewire-audio-client-libraries pipewire-jack
 # Install Rclone
 printf "\nInstalling rclone"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
     unzip rclone-current-linux-amd64.zip -d rclone-current-linux-amd64
     rm rclone-current-linux-amd64.zip
@@ -848,27 +865,27 @@ apt install -y brave-browser-beta
 
 # Install Cyan (converts CMYK color profiles better than GIMP)
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     aria2c -x5 -s5 \
         https://github.com/rodlie/cyan/releases/download/"$CYAN_VER"/Cyan-"$CYAN_VER"-Linux-"$ARCH2".tgz
     tar -xvzf --overwrite Cyan*.tgz
     mv Cyan*/* cyan/
     rm -r Cyan*
     chmod +x cyan/Cyan
-    ln -sf /usr/local/src/cyan/Cyan \
+    ln -sf "$working_dir"/cyan/Cyan \
         /usr/local/bin/Cyan
 )
 
 # Install Lazygit
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     mkdir lazygit
     aria2c -x5 -s5 \
         https://github.com/jesseduffield/lazygit/releases/download/v"$LAZYGIT_VER"/lazygit_"$LAZYGIT_VER"_Linux_"$ARCH2".tar.gz
     tar -xvzf --overwrite lazygit_* -C lazygit/
     rm lazygit_*.tar.gz
     chmod +x lazygit/lazygit
-    ln -sf /usr/local/src/lazygit/lazygit \
+    ln -sf "$working_dir"/lazygit/lazygit \
         /usr/local/bin/lazygit
 )
 
@@ -910,16 +927,15 @@ uv venv /opt/python-tgpt
 # edit /opt/python-tgpt/pyenv.cfg to allow use of system site packages:
 sed -i "s/include-system-site-packages = false/include-system-site-packages = true/" /opt/python-tgpt/pyenv.cfg
 
-
 # Install the radiostreamer and create a launcher
 printf "\nInstalling the Internet Radio Streamer"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/radiostreamer
-    chmod +x /usr/local/src/radiostreamer/radiostreamer
-    chmod 664 /usr/local/src/radiostreamer/radiostreams
-    ln -sf /usr/local/src/radiostreamer/radiostreamer /usr/local/bin/radiostreamer
-    ln -sf /usr/local/src/radiostreamer/radiostreams /home/"$USERNAME"/.config/radiostreams
+    chmod +x "$working_dir"/radiostreamer/radiostreamer
+    chmod 664 "$working_dir"/radiostreamer/radiostreams
+    ln -sf "$working_dir"/radiostreamer/radiostreamer /usr/local/bin/radiostreamer
+    ln -sf "$working_dir"/radiostreamer/radiostreams /home/"$USERNAME"/.config/radiostreams
 
     # create a radiostreamer launcher:
     echo '[Desktop Entry]
@@ -937,10 +953,10 @@ Categories=AudioVideo;Player;Recorder;Network
 
 # Install networkmanager-dmenu
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/firecat53/networkmanager-dmenu
     chmod +x networkmanager-dmenu/networkmanager_dmenu
-    ln -sf /usr/local/src/networkmanager-dmenu/networkmanager_dmenu \
+    ln -sf "$working_dir"/networkmanager-dmenu/networkmanager_dmenu \
         /usr/local/bin/networkmanager_dmenu
 
     # create a launcher:
@@ -960,7 +976,7 @@ Categories=System;NetworkSettings;
 # Install Dyatlov Mapmaker (SDR Map)
 printf "\nInstalling Dyatlov Mapmaker (SDR Map)"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/dyatlov
     chown -R "$USERNAME":"$USERNAME"/dyatlov
     chmod +x dyatlov/kiwisdr_com-parse
@@ -984,7 +1000,7 @@ Categories=AudioVideo;Player;Network;
 # Install SuperSDR
 printf "\nInstalling SuperSDR"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/supersdr
     chown -R "$USERNAME":"$USERNAME"/supersdr
     chmod +x supersdr/supersdr.py
@@ -1031,28 +1047,28 @@ StartupNotify=true
 # Install SuperSDR-Wrapper
 printf "\nInstalling SuperSDR-Wrapper"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/supersdr-wrapper
     chown -R "$USERNAME":"$USERNAME" supersdr-wrapper/kiwidata
     chmod +x supersdr-wrapper/stripper
     chmod +x supersdr-wrapper/supersdr-wrapper
-    ln -sf /usr/local/src/supersdr-wrapper/kiwidata \
-        /usr/local/src/kiwidata
-    ln -sf /usr/local/src/supersdr-wrapper/stripper \
+    ln -sf "$working_dir"/supersdr-wrapper/kiwidata \
+        "$working_dir"/kiwidata
+    ln -sf "$working_dir"/supersdr-wrapper/stripper \
         /usr/local/bin/stripper
-    ln -sf /usr/local/src/supersdr-wrapper/supersdr-wrapper \
+    ln -sf "$working_dir"/supersdr-wrapper/supersdr-wrapper \
         /usr/local/bin/supersdr-wrapper
 )
 
 # Install Bluetabs
 printf "\nInstalling Bluetabs"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/bluetabs
     chmod +x bluetabs/bluetabs
-    ln -sf /usr/local/src/bluetabs/bluetabs \
+    ln -sf "$working_dir"/bluetabs/bluetabs \
         /usr/local/bin/bluetabs
-    ln -sf /usr/local/src/bluetabs/tw_alltopics \
+    ln -sf "$working_dir"/bluetabs/tw_alltopics \
         /home/"$USERNAME"/.config/tw_alltopics
 
     # create a launcher:
@@ -1082,25 +1098,25 @@ read line' >/usr/local/bin/glow-wrapper
 # Install Linux-clone script
 printf "Installing Linux-clone script"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/linux-clone
-    chmod +x /usr/local/src/linux-clone/linux-clone
-    ln -sf /usr/local/src/linux-clone/linux-clone \
+    chmod +x "$working_dir"/linux-clone/linux-clone
+    ln -sf "$working_dir"/linux-clone/linux-clone \
         /usr/local/bin/linux-clone
 )
 
 # Install menu-surfraw
 printf "Installing Menu-Surfraw"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/surfraw-more-elvis
     rsync -av --exclude='LICENCE' --exclude='README.md' \
-        /usr/local/src/surfraw-more-elvis/ \
+        "$working_dir"/surfraw-more-elvis/ \
         /usr/lib/surfraw/
     chmod +x /usr/lib/surfraw/
     git clone https://github.com/AB9IL/menu-surfraw
     chmod +x menu-surfraw/menu-surfraw
-    ln -sf /usr/local/src/menu-surfraw/menu-surfraw \
+    ln -sf "$working_dir"/menu-surfraw/menu-surfraw \
         /usr/local/bin/menu-surfraw
 
     # create a launcher:
@@ -1121,26 +1137,26 @@ Categories=Internet;Web;' >/home/"$USERNAME"/.local/share/applications/search.de
 # Must do this before the proxy and vpn scripts
 printf "Installing Circumventionist-scripts"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/circumventionist-scripts
 )
 
 # Install brave-with-proxy and firefox-with-proxy
 printf "\nInstalling browser proxifier scripts"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     chmod +x circumventionist-scripts/brave-with-proxy
-    ln -sf /usr/local/src/circumventionist-scripts/brave-with-proxy \
+    ln -sf "$working_dir"/circumventionist-scripts/brave-with-proxy \
         /usr/local/bin/brave-with-proxy
     chmod +x circumventionist-scripts/firefox-with-proxy
-    ln -sf /usr/local/src/circumventionist-scripts/firefox-with-proxy \
+    ln -sf "$working_dir"/circumventionist-scripts/firefox-with-proxy \
         /usr/local/bin/firefox-with-proxy
 )
 
 # Install lf file manager
 printf "\nInstalling lf command line file manager"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     mkdir lf_linux_amd64
     cd lf_linux_"$ARCH" || exit
     aria2c -x5 -s5 \
@@ -1148,8 +1164,8 @@ printf "\nInstalling lf command line file manager"
     tar -xvzf --overwrite lf*.gz
     chmod +x lf
     rm lf*.gz
-    cd /usr/local/src || exit
-    ln -sf /usr/local/src/lf_linux_"$ARCH"/lf \
+    cd "$working_dir" || exit
+    ln -sf "$working_dir"/lf_linux_"$ARCH"/lf \
         /usr/local/bin/lf
     mkdir /etc/lf
     cp Dotfiles/lfrc /etc/lf/lfrc
@@ -1170,39 +1186,39 @@ Categories=files;browser;manager;
 
 # Install pistol file previewer
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     aria2c -x5 -s5 \
         https://github.com/doronbehar/pistol/releases/download/v0.5.2/pistol-static-linux-x86_64
     mkdir pistol
     mv pistol-* pistol/pistol
     chmod +x pistol/pistol
-    ln -sf /usr/local/src/pistol/pistol \
+    ln -sf "$working_dir"/pistol/pistol \
         /usr/local/bin/pistol
 )
 
 # Install VPNGate client and scripts
 printf "\nInstalling VPNGate client and scripts"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     mkdir vpngate
     cd vpngate || exit
     aria2c -x5 -s5 \
         https://github.com/davegallant/vpngate/releases/download/v"$VPNGateVersion"/vpngate_"$VPNGateVersion"_linux_"$ARCH".tar.gz
     tar -xvzf --overwrite vpn*.gz
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     chmod +x vpngate/vpngate
     rm vpngate/vpn*.gz
-    ln -sf /usr/local/src/vpngate/vpngate \
+    ln -sf "$working_dir"/vpngate/vpngate \
         /usr/local/bin/vpngate
 
     # make executable and symlink
     chmod +x circumventionist-scripts/dl_vpngate
-    ln -sf /usr/local/src/circumventionist-scripts/dl_vpngate \
+    ln -sf "$working_dir"/circumventionist-scripts/dl_vpngate \
         /usr/local/bin/dl_vpngate
 
     # make executable and symlink
     chmod +x circumventionist-scripts/menu-vpngate
-    ln -sf /usr/local/src/circumventionist-scripts/menu-vpngate \
+    ln -sf "$working_dir"/circumventionist-scripts/menu-vpngate \
         /usr/local/bin/menu-vpngate
 
     # create a launcher:
@@ -1233,24 +1249,24 @@ Terminal=false
 # Install proxy fetchers
 printf "\nInstalling proxy fetchers"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/stamparm/fetch-some-proxies
     chmod +x fetch-some-proxies/fetch.py
     git clone https://github.com/AB9IL/fzproxy
     chmod +x fzproxy/fzproxy
-    ln -sf /usr/local/src/fzproxy/fzproxy \
+    ln -sf "$working_dir"/fzproxy/fzproxy \
         /usr/local/bin/fzproxy
-    cp /usr/local/src/fzproxy/proxychains4.conf \
+    cp "$working_dir"/fzproxy/proxychains4.conf \
         /etc/
 )
 
 # Install Menu-Wireguard
 printf "\nInstalling Menu-Wireguard"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/menu-wireguard
     chmod +x menu-wireguard/menu-wireguard
-    ln -sf /usr/local/src/menu-wireguard/menu-wireguard \
+    ln -sf "$working_dir"/menu-wireguard/menu-wireguard \
         /usr/local/bin/menu-wireguard
 
     # create a launcher:
@@ -1269,40 +1285,40 @@ Terminal=false
 # Install OpenVPN-controller
 printf "\nInstalling OpenVPN Connection Manager"
 (
-    cd /usr/local/src || exit
-    chmod +x /usr/local/src/circumventionist-scripts/openvpn-controller.sh
-    ln -sf /usr/local/src/circumventionist-scripts/openvpn-controller.sh \
+    cd "$working_dir" || exit
+    chmod +x "$working_dir"/circumventionist-scripts/openvpn-controller.sh
+    ln -sf "$working_dir"/circumventionist-scripts/openvpn-controller.sh \
         /usr/local/bin/openvpn-controller.sh
 )
 
 # Install Sshuttle controller
 printf "\Installing Sshuttle controller"
 (
-    cd /usr/local/src || exit
-    chmod +x /usr/local/src/circumventionist-scripts/sshuttle-controller
-    ln -sf /usr/local/src/circumventionist-scripts/sshuttle-controller \
+    cd "$working_dir" || exit
+    chmod +x "$working_dir"/circumventionist-scripts/sshuttle-controller
+    ln -sf "$working_dir"/circumventionist-scripts/sshuttle-controller \
         /usr/local/bin/sshuttle-controller
 )
 
 # Install Tor-Remote
 printf "\nInstalling Tor-Remote"
 (
-    cd /usr/local/src || exit
-    chmod +x /usr/local/src/circumventionist-scripts/tor-remote
-    ln -sf /usr/local/src/circumventionist-scripts/tor-remote \
+    cd "$working_dir" || exit
+    chmod +x "$working_dir"/circumventionist-scripts/tor-remote
+    ln -sf "$working_dir"/circumventionist-scripts/tor-remote \
         /usr/local/bin/tor-remote
 )
 
 # Install Starship prompt
 printf "\nInstalling Starship prompt"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     mkdir starship
     aria2c -x5 -s5 \
         https://github.com/starship/starship/releases/download/v"$STARSH_VER"/starship-"$ARCH2"-unknown-linux-gnu.tar.gz
     tar -xvzf --overwrite starship-*.gz -C starship/
     chmod +x starship/starship
-    ln -sf /usr/local/src/starship/starship \
+    ln -sf "$working_dir"/starship/starship \
         /usr/local/bin/starship
     cp Dotfiles/starship.toml /home/"$USERNAME"/.config/
     rm starship-*.gz
@@ -1311,17 +1327,17 @@ printf "\nInstalling Starship prompt"
 # Install system scripts
 printf "Installing system scripts"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     git clone https://github.com/AB9IL/Catbird-Linux-Scripts
 
     # system exit or shutdown
     chmod +x Catbird-Linux-Scripts/system-exit
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/system-exit \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/system-exit \
         /usr/local/bin/system-exit
 
     # usb reset utility
     chmod +x Catbird-Linux-Scripts/usbreset-helper
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/usbreset-helper \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/usbreset-helper \
         /usr/local/bin/usbreset-helper
     cp Catbird-Linux-Scripts/system.rasi \
         /usr/share/rofi/themes/system.rasi
@@ -1341,7 +1357,7 @@ Categories=System;Shutdown;
 
     # locale manager
     chmod +x Catbird-Linux-Scripts/locale-manager
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/locale-manager \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/locale-manager \
         /usr/local/bin/locale-manager
 
     # create a launcher
@@ -1357,26 +1373,26 @@ Terminal=false
 Categories=Language;System
 ' >/home/"$USERNAME"/.local/share/applications/locale-manager.desktop
 
-    # Install glow-wrapper 
+    # Install glow-wrapper
     chmod +x Catbird-Linux-Scripts/glow-wrapper
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/glow-wrapper \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/glow-wrapper \
         /usr/local/bin/glow-wrapper
 
     # Install make-podcast script
     chmod +x Catbird-Linux-Scripts/make-podcast
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/make-podcast \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/make-podcast \
         /usr/local/bin/make-podcast
 
     # Install make-screencast script
     chmod +x Catbird-Linux-Scripts/make-screencast
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/make-screencast \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/make-screencast \
         /usr/local/bin/make-screencast
 
     # Install note-sorter script
     chmod +x Catbird-Linux-Scripts/note-sorter
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/note-sorter \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/note-sorter \
         /usr/local/bin/note-sorter
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/note-sorter \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/note-sorter \
         /usr/local/bin/vimwiki
 
     # create a launcher
@@ -1395,7 +1411,7 @@ MimeType=text/english;text/plain;text/x-makefile;text/x-c++hdr;text/x-c++src;tex
 
     # Set up Roficalc
     chmod +x Catbird-Linux-Scripts/roficalc
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/roficalc \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/roficalc \
         /usr/local/bin/roficalc
 
     # create a launcher for roficalc
@@ -1412,7 +1428,7 @@ Categories=Text;Calculator;Programming
 ' >/home/"$USERNAME"/.local/share/applications/roficalc.desktop
 
     # set the desktop wallpaper
-    ln -sf /usr/local/src/Catbird-Linux-Scripts/wallpaper.png \
+    ln -sf "$working_dir"/Catbird-Linux-Scripts/wallpaper.png \
         /usr/share/backgrounds/wallpaper.png
 )
 
@@ -1470,8 +1486,8 @@ uv pip install python-tgpt
 
 # Set up the wrapper script to accomplish activation,
 # running, and deactivation of python-tgpt.
-chmod +x /usr/local/src/Catbird-Linux-Scripts/pytgpt-wrapper
-ln -sf /usr/local/src/Catbird-Linux-Scripts/pytgpt-wrapper \
+chmod +x "$working_dir"/Catbird-Linux-Scripts/pytgpt-wrapper
+ln -sf "$working_dir"/Catbird-Linux-Scripts/pytgpt-wrapper \
     /usr/local/bin/pytgpt-wrapper
 chmod +x /usr/local/bin/pytgpt-wrapper
 
@@ -1494,12 +1510,12 @@ phind
 perplexity
 blackboxai
 koboldai
-ai4chat' > /opt/python-tgpt/providers
+ai4chat' >/opt/python-tgpt/providers
 
 # install golang-based tgpt
 printf "\nInstalling Golang-based tgpt"
 (
-    cd /usr/local/src || exit
+    cd "$working_dir" || exit
     mkdir gotgpt
     cd gotgpt || exit
     aria2c -x5 -s5 \
@@ -1507,11 +1523,11 @@ printf "\nInstalling Golang-based tgpt"
     chmod +x tgpt-linux*
     git clone https://github.com/AB9IL/gotgpt-wrapper
     chmod +x /usr/local/bin/gotgpt-wrapper
-    ln -sf /usr/local/src/gotgpt-wrapper/gotgpt-wrapper \
+    ln -sf "$working_dir"/gotgpt-wrapper/gotgpt-wrapper \
         /usr/local/bin/gotgpt-wrapper
 
-# create a launcher for Golang-based-tgpt
-echo '[Desktop Entry]
+    # create a launcher for Golang-based-tgpt
+    echo '[Desktop Entry]
 Type=Application
 Name=goTerminal GPT
 Name[en]=goTerminal GPT
