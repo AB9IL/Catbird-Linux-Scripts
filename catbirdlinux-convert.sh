@@ -259,12 +259,12 @@ default-jre default-jre-headless ffmpeg lsp-plugins chrony pandoc pandoc-citepro
 poppler-utils p7zip ruby-dev picom rng-tools-debian haveged irssi newsboat \
 zathura zathura-ps zathura-djvu zathura-cb odt2txt atool w3m mediainfo parallel \
 thunar thunar-volman ristretto libmpv2 mpv mplayer firmware-misc-nonfree \
-firmware-linux-nonfree firmware-iwlwifi firmware-brcm80211 firmware-intel-graphics \
-firmware-intel-misc firmware-marvell-prestera firmware-mediatek \
-firmware-nvidia-graphics meld gnome-screenshot gnome-keyring cmake libgtk-3-common \
-audacity shellcheck shfmt luarocks black ruff tidy yamllint pypy3 dconf-editor \
-net-tools blueman sqlite3 dbus-x11 obs-studio filezilla htop fastfetch tmux \
-proxychains4 rofi sshuttle seahorse surfraw surfraw-extra usbreset"
+firmware-iwlwifi firmware-brcm80211 firmware-intel-graphics firmware-intel-misc \
+firmware-marvell-prestera firmware-mediatek firmware-nvidia-graphics meld \
+gnome-screenshot gnome-keyring cmake libgtk-3-common audacity shellcheck shfmt \
+luarocks black ruff tidy yamllint pypy3 dconf-editor net-tools blueman sqlite3 \
+dbus-x11 obs-studio filezilla htop fastfetch tmux rofi proxychains4 sshuttle \
+tor torsocks obfs4proxy snowflake-client seahorse surfraw surfraw-extra usbreset"
 for PKG in $PKGS; do sudo apt -y install $PKG; done
 
 # lsp-plugins should be hidden, but are not.
@@ -1538,6 +1538,36 @@ Exec=gotgpt-wrapper
 Terminal=true
 Categories=ai;gpt;browser;chatbot;
 ' >/home/"$USERNAME"/.local/share/applications/gotgpt.desktop
+)
+
+# Install Element messenger (web app):
+(
+    cd "$working_dir" || exit
+    chmod +x circumventionist-scripts/element-web.sh
+    ln -sf "$working_dir"/circumventionist-scripts/element-web.sh \
+        /usr/local/bin/element-web.sh
+    cp circumventionist-scripts/launchers/element-web.desktop\
+        /home/user/.local/share/applications/element-web.desktop
+)
+
+# Install Discord Chat (web app):
+(
+    cd "$working_dir" || exit
+    chmod +x circumventionist-scripts/discord-web.sh
+    ln -sf "$working_dir"/circumventionist-scripts/discord-web.sh \
+        /usr/local/bin/discord-web.sh
+    cp circumventionist-scripts/launchers/discord-web.desktop\
+        /home/user/.local/share/applications/discord-web.desktop
+)
+
+# Install Telegram messenger (web app):
+(
+    cd "$working_dir" || exit
+    chmod +x circumventionist-scripts/telegram-web.sh
+    ln -sf "$working_dir"/circumventionist-scripts/telegram-web.sh \
+        /usr/local/bin/telegram-web.sh
+    cp circumventionist-scripts/launchers/telegram-web.desktop\
+        /home/user/.local/share/applications/telegram-web.desktop
 )
 
 # set ownership of all items in the home folder
