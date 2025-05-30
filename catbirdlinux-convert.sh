@@ -264,7 +264,8 @@ firmware-marvell-prestera firmware-mediatek firmware-nvidia-graphics meld \
 gnome-screenshot gnome-keyring cmake libgtk-3-common audacity shellcheck shfmt \
 luarocks black ruff tidy yamllint pypy3 dconf-editor net-tools blueman sqlite3 \
 dbus-x11 obs-studio filezilla htop fastfetch tmux rofi proxychains4 sshuttle \
-tor torsocks obfs4proxy snowflake-client seahorse surfraw surfraw-extra usbreset"
+tor torsocks obfs4proxy snowflake-client seahorse surfraw surfraw-extra usbreset
+squashfs-tools genisoimage syslinux-utils xorriso"
 for PKG in $PKGS; do sudo apt -y install $PKG; done
 
 # lsp-plugins should be hidden, but are not.
