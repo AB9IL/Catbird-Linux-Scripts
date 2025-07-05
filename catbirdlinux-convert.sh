@@ -31,7 +31,7 @@
 ###############################################################################
 # ROOT USER CHECK
 ###############################################################################
-SCRIPT_VERSION="0.5"
+SCRIPT_VERSION="0.6"
 echo -e "\nCatbird Linux Converter v$SCRIPT_VERSION"
 # exit if not root
 [[ $EUID -ne 0 ]] && echo -e "\nYou must be root to run this script." && exit
@@ -61,7 +61,7 @@ export working_dir="/usr/local/src"
 export USERNAME
 export ARCH="amd64"
 export ARCH2="x86_64"
-export GOTGPT_VER="2.9.2"
+export GOTGPT_VER="2.10.0"
 export HARP_VER="0.29.1"
 export OBSIDIAN_VER="1.8.9"
 export MeshChatVersion="v1.21.0"
