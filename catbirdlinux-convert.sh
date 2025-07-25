@@ -31,7 +31,7 @@
 ###############################################################################
 # ROOT USER CHECK
 ###############################################################################
-SCRIPT_VERSION="0.6"
+SCRIPT_VERSION="0.7"
 echo -e "\nCatbird Linux Converter v$SCRIPT_VERSION"
 # exit if not root
 [[ $EUID -ne 0 ]] && echo -e "\nYou must be root to run this script." && exit
@@ -266,7 +266,7 @@ luarocks black ruff tidy yamllint pypy3 dconf-editor net-tools blueman sqlite3 \
 dbus-x11 obs-studio filezilla htop fastfetch tmux rofi proxychains4 sshuttle \
 tor torsocks obfs4proxy snowflake-client seahorse surfraw surfraw-extra usbreset
 squashfs-tools genisoimage syslinux-utils xorriso"
-for PKG in $PKGS; do sudo apt -y install $PKG; done
+for PKG in $PKGS; do sudo apt -y install "$PKG"; done
 
 # lsp-plugins should be hidden, but are not.
 # append code in the launchers
@@ -283,7 +283,7 @@ python3-ipython python3-pygame python3-scrapy python3-metpy python3-pyaudio \
 python3-selenium python3-venv python3-virtualenv python3-virtualenvwrapper \
 python3-nltk python3-numba python3-mypy python3-xmltodict python3-dask \
 python3-sqlalchemy"
-for PKG in $PKGS; do sudo apt -y install $PKG; done
+for PKG in $PKGS; do sudo apt -y install "$PKG"; done
 
 # use pip for packages not in the regular repos
 # execute as a loop so broken packages don't break the whole process
@@ -293,7 +293,7 @@ textblob vadersentiment jupyterlab jupyter-book jupyter-lsp jupytext \
 cookiecutter bash_kernel ilua types-seaborn pandas-stubs sounddevice nomadnet \
 rns lxmf chunkmuncher"
 for PKG in $PKGS; do
-    python3 -m pip install --upgrade --break-system-packages $PKG
+    python3 -m pip install --upgrade --break-system-packages "$PKG"
 done
 
 # use pip for a beta version:
@@ -309,8 +309,8 @@ apt install -y nodejs
 # Test with: nodejs --version
 
 # Use npm as the node package manager.
-PKGS="prettier eslint_d jsonlint markdownlint readability-cli"
-for PKG in $PKGS; do npm install -g $PKG; done
+PKGS="prettier @fsouza/prettierd eslint_d jsonlint markdownlint readability-cli"
+for PKG in $PKGS; do npm install -g "$PKG"; done
 
 # Update node and prune cruft with:
 npm update -g
@@ -538,7 +538,7 @@ libxfce* xfburn xfconf xfdesktop4 parole sway swaybg waybar greybird-gtk-theme \
 yelp timeshift dosbox grsync remmina wofi kwayland geoclue* \
 gnome-accessibility-themes gnome-desktop3-data gnome-icon-theme gnome-menus \
 gnome-settings-daemon gnome-settings-daemon-common gnome-system* systemsettings"
-for PKG in $PKGS; do sudo apt -y autoremove --purge $PKG; done
+for PKG in $PKGS; do sudo apt -y autoremove --purge "$PKG"; done
 
 # For Wayland / Sway
 # Sway Components to install:
@@ -1547,8 +1547,7 @@ Categories=ai;gpt;browser;chatbot;
     chmod +x circumventionist-scripts/element-web.sh
     ln -sf "$working_dir"/circumventionist-scripts/element-web.sh \
         /usr/local/bin/element-web.sh
-    cp circumventionist-scripts/launchers/element-web.desktop\
-        /home/user/.local/share/applications/element-web.desktop
+    cp circumventionist-scripts/launchers/element-web.desktop /home/user/.local/share/applications/element-web.desktop
 )
 
 # Install Discord Chat (web app):
@@ -1557,8 +1556,7 @@ Categories=ai;gpt;browser;chatbot;
     chmod +x circumventionist-scripts/discord-web.sh
     ln -sf "$working_dir"/circumventionist-scripts/discord-web.sh \
         /usr/local/bin/discord-web.sh
-    cp circumventionist-scripts/launchers/discord-web.desktop\
-        /home/user/.local/share/applications/discord-web.desktop
+    cp circumventionist-scripts/launchers/discord-web.desktop /home/user/.local/share/applications/discord-web.desktop
 )
 
 # Install Telegram messenger (web app):
@@ -1567,8 +1565,7 @@ Categories=ai;gpt;browser;chatbot;
     chmod +x circumventionist-scripts/telegram-web.sh
     ln -sf "$working_dir"/circumventionist-scripts/telegram-web.sh \
         /usr/local/bin/telegram-web.sh
-    cp circumventionist-scripts/launchers/telegram-web.desktop\
-        /home/user/.local/share/applications/telegram-web.desktop
+    cp circumventionist-scripts/launchers/telegram-web.desktop /home/user/.local/share/applications/telegram-web.desktop
 )
 
 # set ownership of all items in the home folder
