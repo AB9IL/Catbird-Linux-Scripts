@@ -704,9 +704,9 @@ net.ipv4.tcp_congestion_control = bbr
 
 # configure chrony for better performance
 # comment out lines in chrony config
-sed -i 's|^pool 2.debian|#pool 2.debian|'; \
-       's|^sourcedir /run/chrony-dhcp|#sourcedir /run/chrony-dhcp|' \
-       /usr/share/chrony/chrony.conf
+sed -i 's|^pool 2.debian|#pool 2.debian|; \
+    s|^sourcedir /run/chrony-dhcp|#sourcedir /run/chrony-dhcp|' \
+    /usr/share/chrony/chrony.conf
 
 echo '# Enable hardware timestamping on all compatible interfaces.
 hwtimestamp *' >/etc/chrony/conf.d/99_custom-settings.conf
